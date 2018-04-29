@@ -1,0 +1,1 @@
+googletest ./test_main.cpp ../src/logger.cpp ./test_logger.cpp
