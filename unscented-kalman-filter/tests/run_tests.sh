@@ -1,1 +1,1 @@
-googletest ./test_main.cpp ../src/logger.cpp ./test_logger.cpp
+googletest ./test_main.cpp ../src/logger.cpp ./test_logger.cpp ../src/tools.cpp ./test_tools.cpp
