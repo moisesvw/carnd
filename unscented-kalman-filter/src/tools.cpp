@@ -29,3 +29,17 @@ MatrixXd Tools::GenerateSigmas(const VectorXd &x, const MatrixXd &p, const int n
 
   return Xsig;
 }
+
+MatrixXd Tools::GenerateSigmas(const VectorXd &x, const MatrixXd &p, const int n_x, const double a, const double yaw){
+  VectorXd x_aug(n_x);
+  MatrixXd p_aug(n_x, n_x);
+  p_aug =  MatrixXd::Zero(n_x, n_x);
+  x_aug = VectorXd::Zero(n_x);
+  x_aug.head(5) = x;
+  p_aug.topLeftCorner(5, 5) = p;
+  p_aug(n_x-2, n_x -2) = a*a;
+  p_aug(n_x-1, n_x -1) = yaw*yaw;
+  MatrixXd sigmas = GenerateSigmas(x_aug, p_aug, n_x);
+  cout << sigmas << endl;
+  return sigmas;
+}
