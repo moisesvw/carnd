@@ -25,6 +25,7 @@ public:
   VectorXd CalculateRMSE(const vector<VectorXd> &estimations, const vector<VectorXd> &ground_truth);
   MatrixXd GenerateSigmas(const VectorXd &x, const MatrixXd &p, const int n_x);
   MatrixXd GenerateSigmas(const VectorXd &x, const MatrixXd &p, const int n_x, const double a, const double yaw);
+  MatrixXd PredictSigmas(const MatrixXd &state, const double delta_t);
 
 };
 

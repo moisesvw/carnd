@@ -40,6 +40,46 @@ MatrixXd Tools::GenerateSigmas(const VectorXd &x, const MatrixXd &p, const int n
   p_aug(n_x-2, n_x -2) = a*a;
   p_aug(n_x-1, n_x -1) = yaw*yaw;
   MatrixXd sigmas = GenerateSigmas(x_aug, p_aug, n_x);
-  cout << sigmas << endl;
   return sigmas;
+}
+
+MatrixXd Tools::PredictSigmas(const MatrixXd &state, const double delta_t){
+  int n_x  = 5;
+  int n_aug_cols = state.cols();
+  MatrixXd prediction(n_x, n_aug_cols);
+  VectorXd  x_k(n_x);
+  VectorXd  x_delta(n_x);
+  VectorXd  noise_delta(n_x);
+  prediction = MatrixXd::Zero(n_x, n_aug_cols);
+  double v_k, yaw_k, yaw_rate_k;
+  double noise_a_k, noise_yaw_rate_k;
+
+  for(int i = 0; i < n_aug_cols; i++){
+    x_k = state.col(i).topRows(n_x);
+    v_k = x_k(2); yaw_k = x_k(3) ; yaw_rate_k = x_k(4);
+
+    if(yaw_rate_k == 0){
+      x_delta << v_k * cos(yaw_k) * delta_t, v_k * sin(yaw_k) * delta_t, 0, 0, 0;
+    } else {
+      x_delta <<
+        v_k/yaw_rate_k * (sin(yaw_k + yaw_rate_k*delta_t) - sin(yaw_k)),
+        v_k/yaw_rate_k * (-cos(yaw_k + yaw_rate_k*delta_t) + cos(yaw_k)),
+        0,
+        yaw_rate_k*delta_t,
+        0;
+    }
+
+    noise_a_k = state.col(i)(5);
+    noise_yaw_rate_k = state.col(i)(6);
+    noise_delta <<
+      0.5 * (delta_t*delta_t) * cos(yaw_k) * noise_a_k,
+      0.5 * (delta_t*delta_t) * sin(yaw_k) * noise_a_k,
+      delta_t * noise_a_k,
+      0.5 * (delta_t*delta_t) * noise_yaw_rate_k,
+      delta_t * noise_yaw_rate_k; 
+
+    prediction.col(i) = x_k + x_delta + noise_delta;
+  }
+
+  return prediction;
 }
