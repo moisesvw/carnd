@@ -124,3 +124,20 @@ TEST(Tools, MeanAndCovariance){
 	ASSERT_TRUE(x.isApprox(expected_x, 0.00001));
 	ASSERT_TRUE(p.isApprox(expected_p, 0.00001));
 }
+
+TEST(Tools, GetRadarMeasurement){
+	VectorXd x_expected(3);
+	VectorXd x(3);
+	x_expected << 6.120590812936281, 0.2459705065412562, 2.1126387264468973;
+	VectorXd state(5);
+	state <<
+		5.93637,
+		1.49035,
+		2.20528,
+		0.536853,
+		0.353577;
+
+	Tools::Tools t;
+	t.GetRadarMeasurement(state, &x);
+	ASSERT_TRUE(x.isApprox(x_expected, 0.00001));
+}

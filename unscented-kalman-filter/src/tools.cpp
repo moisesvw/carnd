@@ -113,3 +113,13 @@ void Tools::MeanAndCovariance(const MatrixXd &predictions, VectorXd* x, MatrixXd
   *x = x_;
   *p = p_;
 }
+
+void Tools::GetRadarMeasurement(const VectorXd &state, VectorXd* x){
+  //state is a vector [px, py, v, yaw, yaw_rate]
+  VectorXd x_(3);
+  double p = sqrt(state(0) * state(0) + state(1) * state(1));
+  double a = atan(state(1)/state(0));
+  double ro = (state(0) * cos(state(3)) * state(2) +  state(1) * sin(state(3)) * state(2))/p;
+  x_ << p, a, ro;
+  *x = x_;
+}
