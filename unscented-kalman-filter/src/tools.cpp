@@ -83,3 +83,33 @@ MatrixXd Tools::PredictSigmas(const MatrixXd &state, const double delta_t){
 
   return prediction;
 }
+
+void Tools::MeanAndCovariance(const MatrixXd &predictions, VectorXd* x, MatrixXd* p){
+  int n_x = 5;
+  int n_aug = 7;
+  int n_a = n_aug * 2 + 1;
+  double lambda = 3 - n_aug;
+  VectorXd x_(n_x);
+  MatrixXd p_(n_x, n_x);
+  VectorXd weights(n_a);
+  p_.fill(0.0);
+  x_.fill(0.0);
+  weights(0) = lambda/(lambda + n_aug);
+  for(int i=1; i < n_a; i++){
+    weights(i) = 0.5/(lambda + n_aug);
+  }
+
+  for(int i=0; i < n_aug * 2 + 1; i++){
+    x_ = x_ + weights(i) * predictions.col(i);
+  }
+
+  for(int i=0; i < n_a; i++){
+    VectorXd x_diff = predictions.col(i) - x_;
+    while (x_diff(3)> M_PI) x_diff(3)-=2.*M_PI;
+    while (x_diff(3)<-M_PI) x_diff(3)+=2.*M_PI;
+    p_ = p_ + weights(i) * x_diff * x_diff.transpose();
+  }
+
+  *x = x_;
+  *p = p_;
+}
