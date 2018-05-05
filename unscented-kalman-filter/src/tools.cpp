@@ -189,11 +189,21 @@ void Tools::UpdateState(const VectorXd &z_state, const VectorXd &z_pred, const M
   Tc.fill(0.0);
   for(int i=0; i < n_a; i++){
     VectorXd z_diff = z_sig.col(i) - z_pred;
+    while (z_diff(1)> M_PI) z_diff(1)-=2.*M_PI;
+    while (z_diff(1)<-M_PI) z_diff(1)+=2.*M_PI;
+
     VectorXd x_diff = x_sig.col(i) - *x_state;
+    while (x_diff(3)> M_PI) x_diff(3)-=2.*M_PI;
+    while (x_diff(3)<-M_PI) x_diff(3)+=2.*M_PI;
+
     Tc = Tc + weights(i) * x_diff * z_diff.transpose();
   }
 
   MatrixXd gain = Tc * s.inverse();
-  *x_state = *x_state + gain * (z_state - z_pred);
+  VectorXd z_diff = z_state - z_pred;
+  while (z_diff(1)> M_PI) z_diff(1)-=2.*M_PI;
+  while (z_diff(1)<-M_PI) z_diff(1)+=2.*M_PI;
+
+  *x_state = *x_state + gain * z_diff;
   *p = *p - gain * s * gain.transpose();
 }
