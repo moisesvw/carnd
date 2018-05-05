@@ -28,6 +28,7 @@ public:
   MatrixXd PredictSigmas(const MatrixXd &state, const double delta_t);
   void MeanAndCovariance(const MatrixXd &predictions, VectorXd* x, MatrixXd* p);
   void GetRadarMeasurement(const VectorXd &state, VectorXd* x);
+  void PredictRadarMeasurement(const MatrixXd &state, VectorXd* z, MatrixXd* s);
 
 };
 

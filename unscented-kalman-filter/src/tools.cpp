@@ -123,3 +123,52 @@ void Tools::GetRadarMeasurement(const VectorXd &state, VectorXd* x){
   x_ << p, a, ro;
   *x = x_;
 }
+
+void Tools::PredictRadarMeasurement(const MatrixXd &state, VectorXd* z, MatrixXd* s){
+  int n_aug = 7;
+  int n_a = n_aug * 2 + 1;
+  int n_z = 3;
+  double lambda = 3 - n_aug;
+  //radar measurement noise standard deviation radius in m
+  double std_radr = 0.3;
+  //radar measurement noise standard deviation angle in rad
+  double std_radphi = 0.0175;
+  //radar measurement noise standard deviation radius change in m/s
+  double std_radrd = 0.1;
+
+  VectorXd weights = VectorXd(n_a);
+  weights(0) = lambda/(lambda + n_aug);
+  for(int i=1; i < n_a; i++){
+    weights(i) = 0.5/(lambda + n_aug);
+  }
+
+  MatrixXd Zsig = MatrixXd(n_z, n_a);
+  VectorXd z_ = VectorXd(n_z);
+  MatrixXd s_ = MatrixXd(n_z, n_z);
+  VectorXd x_ = VectorXd(n_z);
+
+  for(int i=0; i < n_a; i++){
+    GetRadarMeasurement(state.col(i), &x_);
+    Zsig.col(i) = x_;
+  }
+
+  z_.fill(0.0);
+  for(int i=0; i < n_a; i++){
+    z_ = z_ + weights(i) * Zsig.col(i);
+  }
+
+  MatrixXd R = MatrixXd::Zero(n_z, n_z);
+  R(0,0) = std_radr * std_radr;
+  R(1,1) = std_radphi * std_radphi;
+  R(2,2) = std_radrd * std_radrd;
+  s_.fill(0.0);
+    for(int i=0; i < n_a; i++){
+    VectorXd z_diff = Zsig.col(i) - z_;
+    while (z_diff(1)> M_PI) z_diff(1)-=2.*M_PI;
+    while (z_diff(1)<-M_PI) z_diff(1)+=2.*M_PI;
+    s_ = s_ + weights(i) * z_diff * z_diff.transpose();
+  }
+  s_ = s_ + R;
+  *z = z_;
+  *s = s_;
+}
