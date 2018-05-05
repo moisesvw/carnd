@@ -172,3 +172,28 @@ void Tools::PredictRadarMeasurement(const MatrixXd &state, VectorXd* z, MatrixXd
   *z = z_;
   *s = s_;
 }
+
+void Tools::UpdateState(const VectorXd &z_state, const VectorXd &z_pred, const MatrixXd &x_sig, const MatrixXd &z_sig, const MatrixXd s, VectorXd* x_state, MatrixXd* p){
+  int n_x = 5;
+  int n_aug = 7;
+  int n_z = 3;
+  int n_a = n_aug * 2 + 1;
+  double lambda = 3 - n_aug;
+  VectorXd weights = VectorXd(n_a);
+  weights(0) = lambda/(lambda + n_aug);
+  for(int i=1; i < n_a; i++){
+    weights(i) = 0.5/(lambda + n_aug);
+  }
+
+  MatrixXd Tc = MatrixXd(n_x, n_z);
+  Tc.fill(0.0);
+  for(int i=0; i < n_a; i++){
+    VectorXd z_diff = z_sig.col(i) - z_pred;
+    VectorXd x_diff = x_sig.col(i) - *x_state;
+    Tc = Tc + weights(i) * x_diff * z_diff.transpose();
+  }
+
+  MatrixXd gain = Tc * s.inverse();
+  *x_state = *x_state + gain * (z_state - z_pred);
+  *p = *p - gain * s * gain.transpose();
+}

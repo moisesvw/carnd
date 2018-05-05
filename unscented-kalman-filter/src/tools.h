@@ -29,6 +29,7 @@ public:
   void MeanAndCovariance(const MatrixXd &predictions, VectorXd* x, MatrixXd* p);
   void GetRadarMeasurement(const VectorXd &state, VectorXd* x);
   void PredictRadarMeasurement(const MatrixXd &state, VectorXd* z, MatrixXd* s);
+  void UpdateState(const VectorXd &z_state, const VectorXd &z_pred, const MatrixXd &x_sig, const MatrixXd &z_sig, const MatrixXd s, VectorXd* x_state, MatrixXd* p);
 
 };
 
