@@ -112,9 +112,9 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
  * measurement and this one.
  */
 void UKF::Prediction(double delta_t) {
-  MatrixXd sigmas = tools.GenerateSigmas(x_, P_, n_aug_, std_a_, std_yawdd_);
-  Xsig_pred_ = tools.PredictSigmas(sigmas, delta_t);
-  tools.MeanAndCovariance(Xsig_pred_, &x_, &P_);
+  MatrixXd sigmas = tools.GenerateSigmas(x_, P_, n_aug_, std_a_, std_yawdd_, lambda_);
+  Xsig_pred_ = tools.PredictSigmas(sigmas, delta_t, n_x_);
+  tools.MeanAndCovariance(Xsig_pred_, weights_, n_a, &x_, &P_);
 }
 
 /**
@@ -184,7 +184,7 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
   VectorXd z_ = VectorXd(n_z);
   VectorXd z  = meas_package.raw_measurements_;
   MatrixXd s_ = MatrixXd(n_z, n_z);
-  tools.PredictRadarMeasurement(Xsig_pred_, &z_, &s_);
+  tools.PredictRadarMeasurement(Xsig_pred_, n_z, n_a, std_radr_, std_radphi_, std_radrd_, weights_, &z_, &s_);
   MatrixXd Zsig_pred_ = MatrixXd(n_z, n_a);
   VectorXd x__ = VectorXd(n_z);
 
@@ -193,5 +193,5 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
     Zsig_pred_.col(i) = x__;
   }
 
-  tools.UpdateState(z, z_, Xsig_pred_, Zsig_pred_, s_, &x_, &P_);
+  tools.UpdateState(z, z_, Xsig_pred_, Zsig_pred_, s_, n_x_, n_z, n_a, weights_, &x_, &P_);
 }

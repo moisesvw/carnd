@@ -7,33 +7,6 @@ using Eigen::MatrixXd;
 using Eigen::VectorXd;
 using std::vector;
 
-TEST(Tools, GenerateSigmas){
-    int n_x = 5;
-    Tools::Tools t;
-    MatrixXd expected = MatrixXd(n_x, 2*n_x+1);
-    expected << 5.7441,  5.85768,   5.7441,   5.7441,   5.7441,   5.7441,  5.63052,   5.7441,   5.7441,   5.7441,   5.7441,
-        1.38,  1.34566,  1.52806,     1.38,     1.38,     1.38,  1.41434,  1.23194,     1.38,     1.38,     1.38,
-        2.2049,  2.28414,  2.24557,  2.29582,   2.2049,   2.2049,  2.12566,  2.16423,  2.11398,   2.2049,   2.2049,
-        0.5015,  0.44339, 0.631886, 0.516923, 0.595227,   0.5015,  0.55961, 0.371114, 0.486077, 0.407773,   0.5015,
-        0.3528, 0.299973, 0.462123, 0.376339,  0.48417, 0.418721, 0.405627, 0.243477, 0.329261,  0.22143, 0.286879;
-
-    MatrixXd P = MatrixXd(n_x, n_x);
-    P <<     0.0043,   -0.0013,    0.0030,   -0.0022,   -0.0020,
-            -0.0013,    0.0077,    0.0011,    0.0071,    0.0060,
-            0.0030,    0.0011,    0.0054,    0.0007,    0.0008,
-            -0.0022,    0.0071,    0.0007,    0.0098,    0.0100,
-            -0.0020,    0.0060,    0.0008,    0.0100,    0.0123;
-    VectorXd x = VectorXd(n_x);
-    x <<   5.7441,
-            1.3800,
-            2.2049,
-            0.5015,
-            0.3528;
-
-    MatrixXd result = t.GenerateSigmas(x, P, n_x);
-    ASSERT_TRUE(result.isApprox(expected, 0.000001));
-}
-
 TEST(Tools, GenerateSigmasAUG){
     int n_x = 7;
     Tools::Tools t;
@@ -61,7 +34,8 @@ TEST(Tools, GenerateSigmasAUG){
             0,        0,        0,        0,        0,        0,  0.34641,        0,        0,        0,        0,        0,        0, -0.34641,        0,
             0,        0,        0,        0,        0,        0,        0,  0.34641,        0,        0,        0,        0,        0,        0, -0.34641;
 
-    MatrixXd result = t.GenerateSigmas(x, P, n_x, std_a, std_yawdd);
+		double lambda_ =  3 - n_x;
+    MatrixXd result = t.GenerateSigmas(x, P, n_x, std_a, std_yawdd, lambda_);
     ASSERT_TRUE(result.isApprox(expected, 0.000001));
 }
 
@@ -88,7 +62,7 @@ TEST(Tools, PredictSigmas){
 
 	double delta_t = 0.1;
 	Tools::Tools t;
-	MatrixXd result = t.PredictSigmas(Xsig_aug, delta_t);
+	MatrixXd result = t.PredictSigmas(Xsig_aug, delta_t, n_x);
 	ASSERT_TRUE(result.isApprox(expected, 0.000001));
 }
 
@@ -119,8 +93,17 @@ TEST(Tools, MeanAndCovariance){
 		0.5367, 0.47338, 0.67809, 0.55455, 0.64364, 0.54337,  0.5367, 0.53851, 0.60017, 0.39546, 0.51900, 0.42991, 0.530188,  0.5367, 0.535048,
 		0.352, 0.29997, 0.46212, 0.37633,  0.4841, 0.41872,   0.352, 0.38744, 0.40562, 0.24347, 0.32926,  0.2214, 0.28687,   0.352, 0.318159;
 
+  int n_aug = 7;
+  int n_a = n_aug * 2 + 1;
+  double lambda = 3 - n_aug;
+
+  VectorXd weights(n_a);
+  weights(0) = lambda/(lambda + n_aug);
+  for(int i=1; i < n_a; i++){
+    weights(i) = 0.5/(lambda + n_aug);
+  }
 	Tools::Tools t;
-	t.MeanAndCovariance(predictions, &x, &p);
+	t.MeanAndCovariance(predictions, weights, n_a, &x, &p);
 
 	ASSERT_TRUE(x.isApprox(expected_x, 0.00001));
 	ASSERT_TRUE(p.isApprox(expected_p, 0.00001));
@@ -163,7 +146,25 @@ TEST(Tools, PredictRadarMeasurement) {
 		VectorXd z(3);
 		MatrixXd s(3,3);
 		Tools::Tools t;
-		t.PredictRadarMeasurement(state, &z, &s);
+
+		int n_aug = 7;
+		int n_a = n_aug * 2 + 1;
+		int n_z = 3;
+		double lambda = 3 - n_aug;
+		//radar measurement noise standard deviation radius in m
+		double std_radr = 0.3;
+		//radar measurement noise standard deviation angle in rad
+		double std_radphi = 0.0175;
+		//radar measurement noise standard deviation radius change in m/s
+		double std_radrd = 0.1;
+
+		VectorXd weights = VectorXd(n_a);
+		weights(0) = lambda/(lambda + n_aug);
+		for(int i=1; i < n_a; i++){
+			weights(i) = 0.5/(lambda + n_aug);
+		}
+
+		t.PredictRadarMeasurement(state, n_z, n_a, std_radr, std_radphi, std_radrd, weights, &z, &s);
 
 		ASSERT_TRUE(z.isApprox(z_pred, 0.00001));
 		ASSERT_TRUE(s.isApprox(S, 0.00001));
@@ -217,7 +218,18 @@ TEST(Tools, UpdateState){
 		-0.000139448,  0.000617548, -0.000770652,
 		0.00407016, -0.000770652,    0.0180917;
 
-	t.UpdateState(z, z_pred, x_sig, z_sig, s, &x, &p);
+  int n_x = 5;
+  int n_aug = 7;
+  int n_z = 3;
+  int n_a = n_aug * 2 + 1;
+  double lambda = 3 - n_aug;
+  VectorXd weights = VectorXd(n_a);
+  weights(0) = lambda/(lambda + n_aug);
+  for(int i=1; i < n_a; i++){
+    weights(i) = 0.5/(lambda + n_aug);
+  }
+
+	t.UpdateState(z, z_pred, x_sig, z_sig, s, n_x, n_z, n_a, weights, &x, &p);
 	ASSERT_TRUE(x.isApprox(x_expected, 0.00001));
 	ASSERT_TRUE(p.isApprox(p_expected, 0.00001));
 }
