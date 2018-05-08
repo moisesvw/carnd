@@ -6,6 +6,7 @@
 #include <vector>
 #include <string>
 #include <fstream>
+#include "tools.h"
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
@@ -64,9 +65,14 @@ public:
   ///* Augmented state dimension
   int n_aug_;
 
+  ///* Num of Augmented varibles
+  int n_a;
+
   ///* Sigma point spreading parameter
   double lambda_;
 
+  ///* Tools for heper functions
+  Tools tools;
 
   /**
    * Constructor
