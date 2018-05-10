@@ -29,12 +29,11 @@ public:
   void GetRadarMeasurement(const VectorXd &state, VectorXd* x);
   void PredictRadarMeasurement(const MatrixXd &state,
                                const int n_z, const int n_a,
-                               const double std_radr, const double std_radphi, const double std_radrd,
-                               VectorXd &weights,
+                               const VectorXd &weights, const MatrixXd R,
                                VectorXd* z, MatrixXd* s);
   void UpdateState(const VectorXd &z_state, const VectorXd &z_pred,
-                  const MatrixXd &x_sig, const MatrixXd &z_sig, const MatrixXd s,
-                  const int n_x, const int n_z, const int n_a, VectorXd &weights,
+                  const MatrixXd &x_sig, const MatrixXd &z_sig, const MatrixXd &s,
+                  const int n_x, const int n_z, const int n_a, const VectorXd &weights,
                   VectorXd* x_state, MatrixXd* p);
 
 };

@@ -151,12 +151,6 @@ TEST(Tools, PredictRadarMeasurement) {
 		int n_a = n_aug * 2 + 1;
 		int n_z = 3;
 		double lambda = 3 - n_aug;
-		//radar measurement noise standard deviation radius in m
-		double std_radr = 0.3;
-		//radar measurement noise standard deviation angle in rad
-		double std_radphi = 0.0175;
-		//radar measurement noise standard deviation radius change in m/s
-		double std_radrd = 0.1;
 
 		VectorXd weights = VectorXd(n_a);
 		weights(0) = lambda/(lambda + n_aug);
@@ -164,7 +158,15 @@ TEST(Tools, PredictRadarMeasurement) {
 			weights(i) = 0.5/(lambda + n_aug);
 		}
 
-		t.PredictRadarMeasurement(state, n_z, n_a, std_radr, std_radphi, std_radrd, weights, &z, &s);
+		double std_radr_ = 0.3;
+		double std_radphi_ = 0.0175;
+		double std_radrd_ = 0.1;
+		MatrixXd R_radar_ = MatrixXd::Zero(3, 3);
+		R_radar_(0,0) = std_radr_ * std_radr_;
+		R_radar_(1,1) = std_radphi_ * std_radphi_;
+		R_radar_(2,2) = std_radrd_ * std_radrd_;
+
+		t.PredictRadarMeasurement(state, n_z, n_a, weights, R_radar_, &z, &s);
 
 		ASSERT_TRUE(z.isApprox(z_pred, 0.00001));
 		ASSERT_TRUE(s.isApprox(S, 0.00001));

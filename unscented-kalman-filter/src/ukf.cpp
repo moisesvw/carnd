@@ -25,10 +25,10 @@ UKF::UKF() {
   P_ = MatrixXd(5, 5);
 
   // Process noise standard deviation longitudinal acceleration in m/s^2
-  std_a_ = 7.0;
+  std_a_ = 2.1;
 
   // Process noise standard deviation yaw acceleration in rad/s^2
-  std_yawdd_ = 7.0;
+  std_yawdd_ = 1.5;
   
   //DO NOT MODIFY measurement noise values below these are provided by the sensor manufacturer.
   // Laser measurement noise standard deviation position1 in m
@@ -60,7 +60,15 @@ UKF::UKF() {
   // P
   P_ = MatrixXd::Identity(n_x_, n_x_);
   x_ = VectorXd::Zero(n_x_);
-  
+
+  R_radar_ = MatrixXd::Zero(3, 3);
+  R_radar_(0,0) = std_radr_ * std_radr_;
+  R_radar_(1,1) = std_radphi_ * std_radphi_;
+  R_radar_(2,2) = std_radrd_ * std_radrd_;
+
+  R_laser_ = MatrixXd::Zero(2, 2);
+  R_laser_(0,0) = std_laspx_ * std_laspx_;
+  R_laser_(1,1) = std_laspy_ * std_laspy_;
 }
 
 UKF::~UKF() {}
@@ -83,7 +91,7 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
       double v  = sqrt(vx * vx + vy * vy);
       x_ << px, py, v, 0, 0;
     }
-    else if (meas_package.sensor_type_ == MeasurementPackage::LASER) {
+    else {
       double px = meas_package.raw_measurements_[0];
       double py = meas_package.raw_measurements_[1];
       x_ << px, py, 0, 0, 0;
@@ -95,6 +103,7 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
   }
 
   float dt = (meas_package.timestamp_ - time_us_) / 1000000.0; //dt expressed in seconds
+  time_us_ = meas_package.timestamp_;
   Prediction(dt);
 
   if(meas_package.sensor_type_ == MeasurementPackage::RADAR && use_radar_){
@@ -125,8 +134,6 @@ void UKF::UpdateLidar(MeasurementPackage meas_package) {
   /**
   Use lidar data to update the belief about the object's
   position. Modify the state vector, x_, and covariance, P_.
-
-  Also calculates the lidar NIS.
   */
 
   int n_z = 2;
@@ -141,16 +148,12 @@ void UKF::UpdateLidar(MeasurementPackage meas_package) {
     z_ = z_ + weights_(i) * Zsig.col(i);
   }
 
-  MatrixXd R = MatrixXd::Zero(n_z, n_z);
-  R(0,0) = std_laspx_ * std_laspx_;
-  R(1,1) = std_laspy_ * std_laspy_;
-
   s_.fill(0.0);
   for(int i=0; i < n_a; i++){
     VectorXd z_diff = Zsig.col(i) - z_;
     s_ = s_ + weights_(i) * z_diff * z_diff.transpose();
   }
-  s_ = s_ + R;
+  s_ = s_ + R_laser_;
 
   MatrixXd Tc = MatrixXd(n_x_, n_z);
   Tc.fill(0.0);
@@ -165,7 +168,6 @@ void UKF::UpdateLidar(MeasurementPackage meas_package) {
 
   x_ = x_ + gain * z_diff;
   P_ = P_ - gain * s_ * gain.transpose();
-  double NIS = z_diff.transpose() * s_.inverse() * z_diff;
 }
 
 /**
@@ -176,15 +178,13 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
   /**
   Use radar data to update the belief about the object's
   position. Modify the state vector, x_, and covariance, P_.
-
-  Also calculates the radar NIS.
   */
 
   int n_z = 3;
   VectorXd z_ = VectorXd(n_z);
   VectorXd z  = meas_package.raw_measurements_;
   MatrixXd s_ = MatrixXd(n_z, n_z);
-  tools.PredictRadarMeasurement(Xsig_pred_, n_z, n_a, std_radr_, std_radphi_, std_radrd_, weights_, &z_, &s_);
+  tools.PredictRadarMeasurement(Xsig_pred_, n_z, n_a, weights_, R_radar_, &z_, &s_);
   MatrixXd Zsig_pred_ = MatrixXd(n_z, n_a);
   VectorXd x__ = VectorXd(n_z);
 

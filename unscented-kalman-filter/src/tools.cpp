@@ -1,4 +1,5 @@
 #include <iostream>
+#include <math.h>
 #include "tools.h"
 
 using Eigen::VectorXd;
@@ -64,16 +65,16 @@ MatrixXd Tools::PredictSigmas(const MatrixXd &state, const double delta_t, const
     x_k = state.col(i).topRows(n_x);
     v_k = x_k(2); yaw_k = x_k(3) ; yaw_rate_k = x_k(4);
 
+    x_delta.fill(0.0);
     if(fabs(yaw_rate_k) > 0.001){
-      x_delta <<
-        v_k/yaw_rate_k * (sin(yaw_k + yaw_rate_k*delta_t) - sin(yaw_k)),
-        v_k/yaw_rate_k * (-cos(yaw_k + yaw_rate_k*delta_t) + cos(yaw_k)),
-        0,
-        yaw_rate_k*delta_t,
-        0;
+      x_delta(0) = v_k/yaw_rate_k * (sin(yaw_k + yaw_rate_k*delta_t) - sin(yaw_k));
+      x_delta(1) = v_k/yaw_rate_k * (cos(yaw_k) - cos(yaw_k + yaw_rate_k*delta_t));
     } else {
-      x_delta << v_k * cos(yaw_k) * delta_t, v_k * sin(yaw_k) * delta_t, 0, 0, 0;
+      x_delta(0) = v_k * cos(yaw_k) * delta_t;
+      x_delta(0) = v_k * sin(yaw_k) * delta_t;
     }
+
+    x_delta(3) = yaw_rate_k*delta_t;
 
     noise_a_k = state.col(i)(5);
     noise_yaw_rate_k = state.col(i)(6);
@@ -93,13 +94,11 @@ MatrixXd Tools::PredictSigmas(const MatrixXd &state, const double delta_t, const
 void Tools::MeanAndCovariance(const MatrixXd &predictions, const VectorXd &weights, const int n_a, VectorXd* x, MatrixXd* p){
   VectorXd x_ = *x;
   MatrixXd p_ = *p;
-  p_.fill(0.0);
+
   x_.fill(0.0);
+  x_ =  predictions * weights;
 
-  for(int i=0; i < n_a; i++){
-    x_ = x_ + weights(i) * predictions.col(i);
-  }
-
+  p_.fill(0.0);
   for(int i=0; i < n_a; i++){
     VectorXd x_diff = predictions.col(i) - x_;
     while (x_diff(3)> M_PI) x_diff(3)-=2.*M_PI;
@@ -115,16 +114,16 @@ void Tools::GetRadarMeasurement(const VectorXd &state, VectorXd* x){
   //state is a vector [px, py, v, yaw, yaw_rate]
   VectorXd x_(3);
   double p = sqrt(state(0) * state(0) + state(1) * state(1));
-  double a = atan(state(1)/state(0));
+  double a = atan2(state(1), state(0));
   double ro = (state(0) * cos(state(3)) * state(2) +  state(1) * sin(state(3)) * state(2))/p;
   x_ << p, a, ro;
   *x = x_;
 }
 
-void Tools::PredictRadarMeasurement(const MatrixXd &state, const int n_z, const int n_a,
-                                    const double std_radr, const double std_radphi, const double std_radrd,
-                                    VectorXd &weights,
-                                    VectorXd* z, MatrixXd* s){
+void Tools::PredictRadarMeasurement(const MatrixXd &state,
+                               const int n_z, const int n_a,
+                               const VectorXd &weights, const MatrixXd R,
+                               VectorXd* z, MatrixXd* s){
 
   MatrixXd Zsig = MatrixXd(n_z, n_a);
   VectorXd z_ = VectorXd(n_z);
@@ -141,12 +140,8 @@ void Tools::PredictRadarMeasurement(const MatrixXd &state, const int n_z, const 
     z_ = z_ + weights(i) * Zsig.col(i);
   }
 
-  MatrixXd R = MatrixXd::Zero(n_z, n_z);
-  R(0,0) = std_radr * std_radr;
-  R(1,1) = std_radphi * std_radphi;
-  R(2,2) = std_radrd * std_radrd;
   s_.fill(0.0);
-    for(int i=0; i < n_a; i++){
+  for(int i=0; i < n_a; i++){
     VectorXd z_diff = Zsig.col(i) - z_;
     while (z_diff(1)> M_PI) z_diff(1)-=2.*M_PI;
     while (z_diff(1)<-M_PI) z_diff(1)+=2.*M_PI;
@@ -158,8 +153,8 @@ void Tools::PredictRadarMeasurement(const MatrixXd &state, const int n_z, const 
 }
 
 void Tools::UpdateState(const VectorXd &z_state, const VectorXd &z_pred,
-                        const MatrixXd &x_sig, const MatrixXd &z_sig, const MatrixXd s,
-                        const int n_x, const int n_z, const int n_a, VectorXd &weights,
+                        const MatrixXd &x_sig, const MatrixXd &z_sig, const MatrixXd &s,
+                        const int n_x, const int n_z, const int n_a, const VectorXd &weights,
                         VectorXd* x_state, MatrixXd* p){
 
   MatrixXd Tc = MatrixXd(n_x, n_z);
