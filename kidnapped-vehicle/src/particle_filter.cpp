@@ -52,6 +52,32 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 	// NOTE: When adding noise you may find std::normal_distribution and std::default_random_engine useful.
 	//  http://en.cppreference.com/w/cpp/numeric/random/normal_distribution
 	//  http://www.cplusplus.com/reference/random/default_random_engine/
+	default_random_engine gen;
+	double std_x, std_y, std_theta;
+	std_x = std_pos[0];
+	std_y = std_pos[1];
+	std_theta = std_pos[3];
+	normal_distribution<double> dist_x(0, std_x);
+	normal_distribution<double> dist_y(0, std_y);
+	normal_distribution<double> dist_theta(0, std_theta);
+
+	Particle pt;
+	double v_;
+	for(int i=0; i < num_particles; i++){
+		pt = particles[i];
+		if(fabs(yaw_rate) < 0.01) {
+			pt.x = pt.x + velocity * delta_t * cos(pt.theta);
+			pt.y = pt.y + velocity * delta_t * sin(pt.theta);
+		} else {
+			v_ =  velocity/yaw_rate;
+			pt.x = pt.x + v_ * (sin(pt.theta + yaw_rate * delta_t) - sin(pt.theta));
+			pt.y = pt.y + v_ * (cos(pt.theta) - cos(pt.theta + yaw_rate * delta_t) );
+			pt.theta = pt.theta + yaw_rate * delta_t;
+		}
+		pt.x = pt.x + dist_x(gen);
+		pt.y = pt.y + dist_y(gen);
+		pt.theta = pt.theta + dist_theta(gen);
+	}
 
 }
 
