@@ -53,3 +53,9 @@ TEST(ParticleFilter, dataAssociation) {
     ASSERT_TRUE(ll2[1].id == 2);
     ASSERT_TRUE(ll2[2].id == 2);
 }
+
+TEST(ParticleFilter, gaussMulti) {
+    ParticleFilter pf;
+    double result = pf.gaussMulti(-2.0, 4.0, 0.3, 0.3);
+    ASSERT_TRUE(result == 9.831848741505932e-49);
+}

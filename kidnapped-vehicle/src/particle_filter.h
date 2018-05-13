@@ -115,6 +115,8 @@ public:
 	const bool initialized() const {
 		return is_initialized;
 	}
+
+	double gaussMulti(double x_diff, double y_diff, double varx, double vary);
 };
 
 

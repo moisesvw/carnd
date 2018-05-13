@@ -167,3 +167,9 @@ string ParticleFilter::getSenseY(Particle best)
     s = s.substr(0, s.length()-1);  // get rid of the trailing space
     return s;
 }
+
+double ParticleFilter::gaussMulti(double x_diff, double y_diff, double varx, double vary){
+	double a = 1/(2 * M_PI * varx * vary);
+	double b = (x_diff * x_diff) / (2 * varx * varx) + (y_diff * y_diff) / (2 * vary * vary);
+	return a * exp(-b);
+}
