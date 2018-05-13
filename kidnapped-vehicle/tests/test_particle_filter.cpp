@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include "../src/particle_filter.h"
-
+#include <vector>
 using namespace std;
 
 TEST(ParticleFilter, initializer) {
@@ -24,4 +24,32 @@ TEST(ParticleFilter, prediction) {
     double x = p.x + (3/3.8) * (sin(p.theta + 3.8 * 0.1) - sin(p.theta));
 
     ASSERT_TRUE(pf.particles[0].x <= p.x);
+}
+
+TEST(ParticleFilter, dataAssociation) {
+    ParticleFilter pf;
+
+    LandmarkObs l1, l2, l3, l4, l5;
+    l1.id = 1; l1.x = 5; l1.y = 3;
+    l2.id = 2; l2.x = 2; l2.y = 1;
+    l3.id = 3; l3.x = 6; l3.y = 1;
+    l4.id = 4; l4.x = 7; l4.y = 4;
+    l5.id = 5; l5.x = 4; l5.y = 7;
+    vector<LandmarkObs> ll1;
+    ll1.push_back(l1) ; ll1.push_back(l2);
+    ll1.push_back(l3) ; ll1.push_back(l4);
+    ll1.push_back(l5) ; 
+
+    LandmarkObs o1, o2, o3;
+    o1.x = 6.0 ; o1.y = 3.0;
+    o2.x = 2.0; o2.y = 1.9999999999999998;
+    o3.x = 0.0; o3.y = 5.0;
+    vector<LandmarkObs> ll2;
+    ll2.push_back(o1); ll2.push_back(o2); ll2.push_back(o3);
+
+    pf.dataAssociation(ll1, ll2);
+
+    ASSERT_TRUE(ll2[0].id == 1);
+    ASSERT_TRUE(ll2[1].id == 2);
+    ASSERT_TRUE(ll2[2].id == 2);
 }
