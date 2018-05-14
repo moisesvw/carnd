@@ -1,3 +1,15 @@
+# Particle Filter
+
+![Alt text](particles.gif "Particles")
+
+In this project was added the GoogleTest library you can run test inside test folder as follow:
+```sh
+$ sh run_tests.sh 
+```
+![Alt text](test.png "Test")
+
+To setup tests you can follow the tutorial in this [link](http://deanbodenham.com/learn/cpp-googletest.html)
+
 # Overview
 This repository contains all the code needed to complete the final project for the Localization course in Udacity's Self-Driving Car Nanodegree.
 
