@@ -118,6 +118,7 @@ public:
 
 	double gaussMulti(double x_diff, double y_diff, double varx, double vary);
 	void updateParticleWeight(Particle& particle, std::vector<LandmarkObs> obs, std::vector<LandmarkObs> marks, double std_x, double std_y);
+	std::vector <LandmarkObs> transformCoordinates(std::vector <LandmarkObs>  observations, double theta, double x, double y);
 };
 
 

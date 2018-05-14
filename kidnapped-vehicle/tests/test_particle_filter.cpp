@@ -92,3 +92,24 @@ TEST(ParticleFilter, updateParticleWeight) {
     pf.updateParticleWeight(pts[0],ll2, ll1, 0.3, 0.3);
     ASSERT_TRUE(pts[0].weight== 1.8963176765383805e-74);
 }
+
+TEST(ParticleFilter, transformCoordinates) {
+    ParticleFilter pf;
+
+    LandmarkObs o1, o2, o3;
+    o1.x = 2.0 ; o1.y = 2.0;
+    o2.x = 3.0; o2.y = -2;
+    o3.x = 0.0; o3.y = -4.0;
+    
+    vector<LandmarkObs> ll2;
+    ll2.push_back(o1); ll2.push_back(o2); ll2.push_back(o3);
+
+    vector<LandmarkObs> result = pf.transformCoordinates(ll2, -1.5707963267948966 , 4, 5);
+
+    ASSERT_TRUE(result[0].x == 6.0);
+    ASSERT_TRUE(result[0].y == 3.0);
+    ASSERT_TRUE(result[1].x == 2.0);
+    ASSERT_TRUE(result[1].y == 2.0);
+    ASSERT_TRUE(result[2].x == 0.0);
+    ASSERT_TRUE(result[2].y == 5.0);
+}

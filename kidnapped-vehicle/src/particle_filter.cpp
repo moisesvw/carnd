@@ -202,3 +202,15 @@ void ParticleFilter::updateParticleWeight(Particle& particle, std::vector<Landma
 
 	}
 }
+
+vector <LandmarkObs> ParticleFilter::transformCoordinates(vector <LandmarkObs>  observations, double theta, double x, double y){
+	vector <LandmarkObs> obs;
+	for(int i=0; i < observations.size(); i++){
+		LandmarkObs l_;
+		l_.id = observations[i].id;
+		l_.x = cos(theta)*observations[i].x - sin(theta)*observations[i].y + x;
+		l_.y = sin(theta)*observations[i].x + cos(theta)*observations[i].y + y;
+		obs.push_back(l_);
+	}
+	return obs;
+}
