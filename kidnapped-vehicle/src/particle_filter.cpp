@@ -28,6 +28,9 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
 	if(is_initialized)
 		return;
 
+	random_device rd;
+	default_random_engine generator( rd() );
+	gen = generator; 
 	num_particles = 100;
 	is_initialized = true;
 	double std_x, std_y, std_theta;
@@ -157,23 +160,15 @@ void ParticleFilter::resample() {
 			mw = particles[i].weight;
 	}
 
-	uniform_real_distribution<double> dist_beta(0.0, mw);
-	uniform_int_distribution<int> dist_index(0, num_particles-1);
-
-	int index = dist_index(gen);
-	double beta = 0.0;
-	vector<Particle> samples;
-
-	for(int i=0; i < num_particles; i++){
-		beta = beta + dist_beta(gen) * 2.0;
-		while(beta > weights[index]){
-			beta -= weights[index];
-			index = (index + 1) % num_particles;
-		}
-		samples.push_back(particles[index]);
-	}
-
-	particles = samples;
+	random_device seed;
+	mt19937 random_generator(seed());
+	// sample particles based on their weight
+	discrete_distribution<> sample(weights.begin(), weights.end());
+	vector<Particle> new_particles(num_particles);
+	for(auto & p : new_particles)
+		p = particles[sample(random_generator)];
+	
+	particles = move(new_particles);
 }
 
 Particle ParticleFilter::SetAssociations(Particle& particle, const std::vector<int>& associations, 
