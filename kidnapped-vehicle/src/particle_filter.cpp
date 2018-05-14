@@ -173,3 +173,32 @@ double ParticleFilter::gaussMulti(double x_diff, double y_diff, double varx, dou
 	double b = (x_diff * x_diff) / (2 * varx * varx) + (y_diff * y_diff) / (2 * vary * vary);
 	return a * exp(-b);
 }
+
+void ParticleFilter::updateParticleWeight(Particle& particle, std::vector<LandmarkObs> obs, std::vector<LandmarkObs> marks, double std_x, double std_y){
+	particle.weight = 1.0;
+	int mark_index;
+	double weight, diff_x, diff_y;
+
+	for(int i=0; i < obs.size(); i++) {
+		mark_index = -1;
+		for(int j=0; j < marks.size(); j++){
+			if(marks[j].id == obs[i].id){
+				mark_index = j;
+			}
+		}
+
+		weight = 0.0;
+		if(mark_index != -1){
+			diff_x = obs[i].x - marks[mark_index].x;
+			diff_y = obs[i].y - marks[mark_index].y;
+			weight = gaussMulti(diff_x, diff_y, std_x, std_y);
+		}
+
+		if(weight == 0.0) {
+			particle.weight = particle.weight * 0.01;
+		} else {
+			particle.weight = particle.weight *  weight;
+		}
+
+	}
+}
