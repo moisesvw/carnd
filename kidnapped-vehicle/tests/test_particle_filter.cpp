@@ -100,7 +100,7 @@ TEST(ParticleFilter, transformCoordinates) {
     o1.x = 2.0 ; o1.y = 2.0;
     o2.x = 3.0; o2.y = -2;
     o3.x = 0.0; o3.y = -4.0;
-    
+
     vector<LandmarkObs> ll2;
     ll2.push_back(o1); ll2.push_back(o2); ll2.push_back(o3);
 
