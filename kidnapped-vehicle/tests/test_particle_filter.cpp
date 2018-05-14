@@ -21,9 +21,7 @@ TEST(ParticleFilter, prediction) {
     pf.init(1.0, 2.0, 3.9, std);
     Particle p = pf.particles[0];
     pf.prediction(0.1, std, 3, 3.8);
-    double x = p.x + (3/3.8) * (sin(p.theta + 3.8 * 0.1) - sin(p.theta));
-
-    ASSERT_TRUE(pf.particles[0].x <= p.x);
+    ASSERT_TRUE(pf.particles[0].x != p.x);
 }
 
 TEST(ParticleFilter, dataAssociation) {
@@ -90,7 +88,8 @@ TEST(ParticleFilter, updateParticleWeight) {
     pts.push_back(pt);
     ASSERT_TRUE(pts[0].weight==1);
     pf.updateParticleWeight(pts[0],ll2, ll1, 0.3, 0.3);
-    ASSERT_TRUE(pts[0].weight== 1.8963176765383805e-74);
+    
+    ASSERT_TRUE(pts[0].weight== 1.8963176765383803e-70 * 0.001 * 0.001);
 }
 
 TEST(ParticleFilter, transformCoordinates) {
