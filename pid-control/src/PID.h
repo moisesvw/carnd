@@ -1,5 +1,7 @@
 #ifndef PID_H
 #define PID_H
+#include<random>
+using namespace std;
 
 class PID {
 public:
@@ -17,6 +19,9 @@ public:
   double Ki;
   double Kd;
 
+  bool initialized;
+  default_random_engine gen;
+  normal_distribution<double> steer_dist;
   /*
   * Constructor
   */
@@ -41,6 +46,11 @@ public:
   * Calculate the total PID error.
   */
   double TotalError();
+
+  /*
+  * Draw random next angle steering
+  */
+  double next_steer();
 };
 
 #endif /* PID_H */
