@@ -1,9 +1,9 @@
-#ifndef PID_H
-#define PID_H
+#ifndef TWIDDLE_H
+#define TWIDDLE_H
 #include<random>
 using namespace std;
 
-class PID {
+class Twiddle {
 public:
   /*
   * Errors
@@ -20,26 +20,41 @@ public:
   double Kd;
 
   bool initialized;
-  default_random_engine gen;
-  normal_distribution<double> steer_dist;
   double prev_cte=-1;
   double sum_cte;
   double dt_cte;
   double cte;
+
+  /**
+   * 
+   *  Twiddle state parameters
+   */
+
+  double p[3];
+  double dp[3];
+  double tol;
+  double best_err;
+  double err;
+  int it = 0;
+  int i = 0;
+  bool flag_1;
+  bool flag_2;
+  bool flag_3;
+
   /*
   * Constructor
   */
-  PID();
+  Twiddle();
 
   /*
   * Destructor.
   */
-  virtual ~PID();
+  virtual ~Twiddle();
 
   /*
   * Initialize PID.
   */
-  void Init(double Kp, double Ki, double Kd);
+  void Init();
 
   /*
   * Update the PID error variables given cross track error.
@@ -51,6 +66,11 @@ public:
   */
   double TotalError();
 
+  /*
+  * next angle steering
+  */
+  double Train(double cte);
+
 };
 
-#endif /* PID_H */
+#endif /* TWIDDLE_H */
