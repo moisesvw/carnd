@@ -29,7 +29,7 @@ std::string hasData(std::string s) {
   return "";
 }
 
-int main()
+int main(int argc, char *argv[])
 {
   uWS::Hub h;
 
@@ -37,7 +37,10 @@ int main()
   Twiddle tw;
   tw.Init();
   // TODO: Initialize the pid variable.
-  pid.Init(0.3, 0.3, 0.3);
+  double init_kp = 0.2; //atof(argv[1]);
+  double init_ki = 0.00001 ; //atof(argv[2]);
+  double init_kd = 1.7;//atof(argv[3]);
+  pid.Init(init_kp, init_ki, init_kd);
   h.onMessage([&pid](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
@@ -69,7 +72,7 @@ int main()
 
           json msgJson;
           msgJson["steering_angle"] = steer_value;
-          msgJson["throttle"] = 0.3;
+          msgJson["throttle"] = 0.33;
           auto msg = "42[\"steer\"," + msgJson.dump() + "]";
           std::cout << msg << std::endl;
           ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
