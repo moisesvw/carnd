@@ -1,0 +1,70 @@
+#! /bin/bash
+apt-get update -y
+apt-get install git libuv1-dev libssl-dev gcc g++ cmake make zlib1g-dev unzip gfortran cppad wget -y
+git clone https://github.com/uWebSockets/uWebSockets 
+cd uWebSockets
+git checkout e94b6e1
+mkdir build
+cd build
+cmake ..
+make 
+make install
+cd ../..
+ln -sf /usr/lib64/libuWS.so /usr/lib/libuWS.so
+rm -r uWebSockets
+
+wget https://www.coin-or.org/download/source/Ipopt/Ipopt-3.12.7.zip && unzip Ipopt-3.12.7.zip
+rm Ipopt-3.12.7.zip
+
+echo "\nSECOND ROUND !!!!"
+echo "\nSECOND ROUND !!!!"
+echo "\nSECOND ROUND !!!!"
+echo "\nSECOND ROUND !!!!"
+echo "\nSECOND ROUND !!!!"
+
+# Pass the Ipopt source directory as the first argument
+if [ -z Ipopt-3.12.7 ]
+then
+    echo "Specifiy the location of the Ipopt source directory in the first argument."
+    exit
+fi
+cd Ipopt-3.12.7
+
+prefix=/usr/local
+srcdir=$PWD
+
+echo "Building Ipopt from ${srcdir}"
+echo "Saving headers and libraries to ${prefix}"
+
+# BLAS
+cd $srcdir/ThirdParty/Blas
+./get.Blas
+mkdir -p build && cd build
+../configure --prefix=$prefix --disable-shared --with-pic
+make install
+
+# Lapack
+cd $srcdir/ThirdParty/Lapack
+./get.Lapack
+mkdir -p build && cd build
+../configure --prefix=$prefix --disable-shared --with-pic \
+    --with-blas="$prefix/lib/libcoinblas.a -lgfortran"
+make install
+
+# ASL
+cd $srcdir/ThirdParty/ASL
+./get.ASL
+
+# MUMPS
+cd $srcdir/ThirdParty/Mumps
+./get.Mumps
+
+# build everything
+cd $srcdir
+./configure --prefix=$prefix coin_skip_warn_cxxflags=yes \
+    --with-blas="$prefix/lib/libcoinblas.a -lgfortran" \
+    --with-lapack=$prefix/lib/libcoinlapack.a
+make
+make test
+make -j1 install
+echo "FINALLY!!!!!"
