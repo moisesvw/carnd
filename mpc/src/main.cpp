@@ -117,10 +117,10 @@ int main() {
 
           double x_    = v * cos(0) * delay;
           double y_    = v * sin(0) * delay;
-          double psi_  = 0 - (v * delta * delay / 2.67);
+          double psi_  = 0 - (v * delta * delay / mpc.Lf);
           double v_    = v + a * delay;
           double cte_  = coeffs[0] + (v * sin(epsi_init) * delay);
-          double epsi_ = epsi_init - (v * atan(coeffs[1]) * delay / 2.67);
+          double epsi_ = epsi_init - (v * atan(coeffs[1]) * delay / mpc.Lf);
 
           //State
           Eigen::VectorXd state(6);
