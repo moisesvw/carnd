@@ -1,0 +1,9 @@
+Please save your output images to this folder and include a description in your README of what each image shows.
+- distort_undistort_example.png example of undistorted image
+- undistorted2.png example of undistorted on test image
+- threshold2.png example of gradient and channels threshold images
+- threshold3.png example of stacked gradient+channels and final binary 
+- treshold1.png example of image to apply threshold
+- warped.png example of warped
+- fit_visual.png example of fit line on detected lanes
+- plotted_lane_area.png example of plotted lane line area
