@@ -1,0 +1,3 @@
+[submodule "Traffic-Sign-Recognition"]
+	path = Traffic-Sign-Recognition
+	url = git@github.com:moisesvw/Traffic-Sign-Recognition.git

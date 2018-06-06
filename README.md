@@ -12,7 +12,7 @@ This repository contains projects associated with Udacity's [Self Driving Car En
 
 Detected highway lane lines on a video stream. Used OpencV image analysis techniques to identify lines, including Hough Transforms and Canny edge detection.
 
-#### [Traffic Sign Classifier]()
+#### [Traffic Sign Classifier](https://github.com/moisesvw/Traffic-Sign-Recognition)
 
 Built and trained a deep neural network to classify traffic signs, using TensorFlow. Experimented with different network architectures. Performed image pre-processing and validation to guard against overfitting.
 
