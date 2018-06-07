@@ -1,3 +1,6 @@
 [submodule "Traffic-Sign-Recognition"]
 	path = Traffic-Sign-Recognition
 	url = git@github.com:moisesvw/Traffic-Sign-Recognition.git
+[submodule "extended_kalman_filter2D"]
+	path = extended_kalman_filter2D
+	url = git@github.com:moisesvw/extended_kalman_filter2D.git
